@@ -6,11 +6,6 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local')
 }
 
-// Validate the MongoDB connection string
-if (!MONGODB_URI.startsWith('mongodb://') && !MONGODB_URI.startsWith('mongodb+srv://')) {
-  throw new Error('Invalid MONGODB_URI. It should start with "mongodb://" or "mongodb+srv://"')
-}
-
 let cached = global.mongoose
 
 if (!cached) {

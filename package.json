@@ -60,7 +60,10 @@
     "zod": "^3.24.1",
     "mongoose": "latest",
     "@google/generative-ai": "latest",
-    "uuid": "latest"
+    "uuid": "latest",
+    "bcryptjs": "latest",
+    "firebase": "latest",
+    "react-firebase-hooks": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

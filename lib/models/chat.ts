@@ -5,6 +5,10 @@ const chatSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  userId: {
+    type: String,
+    required: true,
+  },
   messages: [{
     content: String,
     role: String,
@@ -25,7 +29,7 @@ const chatSchema = new mongoose.Schema({
 
 // Create compound index for efficient querying and automatic deletion
 chatSchema.index({ updatedAt: -1 })
-chatSchema.index({ sessionId: 1 })
+chatSchema.index({ sessionId: 1, userId: 1 })
 
 export const Chat = mongoose.models.Chat || mongoose.model('Chat', chatSchema)
 

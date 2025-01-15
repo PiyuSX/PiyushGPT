@@ -8,17 +8,15 @@ import { Chat } from '@/lib/models/chat'
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
-// Sanitize the AI response to reflect proper branding
-function sanitizeResponse(response: string): string {
-  return response
-    .replace(/gemini/gi, 'Piyush GPT') // Replace Gemini with Piyush GPT
-    .replace(/google/gi, 'Piyush Rajbanshi') // Replace Google with Piyush Rajbanshi
-}
-
 export async function chat(messages: { role: string; content: string }[], sessionId?: string) {
   try {
     // Connect to MongoDB
-    await dbConnect()
+    try {
+      await dbConnect()
+    } catch (dbError) {
+      console.error('Database connection error:', dbError)
+      throw new Error('Failed to connect to the database. Please check your connection string.')
+    }
 
     // Generate or use existing session ID
     const currentSessionId = sessionId || uuidv4()
@@ -27,14 +25,11 @@ export async function chat(messages: { role: string; content: string }[], sessio
     const currentMessage = messages[messages.length - 1].content
 
     const result = await model.generateContent(currentMessage)
-    let text = result.response.text()
+    const text = result.response.text()
 
     if (!text) {
       throw new Error('No response from AI')
     }
-
-    // Sanitize the response
-    text = sanitizeResponse(text)
 
     // Store the conversation in MongoDB
     try {
@@ -79,7 +74,7 @@ export async function chat(messages: { role: string; content: string }[], sessio
     console.error('Chat error:', error)
     return { 
       content: null, 
-      error: error instanceof Error ? error.message : 'Failed to get response from AI',
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
       sessionId: null
     }
   }
@@ -96,7 +91,7 @@ export async function getRecentChats() {
     return { chats: recentChats, error: null }
   } catch (error) {
     console.error('Error fetching recent chats:', error)
-    return { chats: [], error: null } // Return empty array instead of null
+    return { chats: [], error: 'Failed to fetch recent chats. Please check your database connection.' }
   }
 }
 
@@ -107,6 +102,7 @@ export async function deleteChat(sessionId: string) {
     return { success: true, error: null }
   } catch (error) {
     console.error('Error deleting chat:', error)
-    return { success: false, error: 'Failed to delete chat' }
+    return { success: false, error: 'Failed to delete chat. Please check your database connection.' }
   }
 }
+
