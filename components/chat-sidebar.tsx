@@ -15,6 +15,7 @@ interface ChatSidebarProps {
   onSessionSelect: (sessionId: string) => void
   onSessionDelete: (sessionId: string) => void
   onNewChat: () => void
+  userId: string // Add userId to props
 }
 
 export function ChatSidebar({ 
@@ -22,7 +23,8 @@ export function ChatSidebar({
   currentSessionId, 
   onSessionSelect,
   onSessionDelete,
-  onNewChat
+  onNewChat,
+  userId // Destructure userId from props
 }: ChatSidebarProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -30,7 +32,7 @@ export function ChatSidebar({
     e.stopPropagation()
     try {
       setDeletingId(sessionId)
-      const { success, error } = await deleteChat(sessionId)
+      const { success, error } = await deleteChat(sessionId, userId) // Pass userId as the second argument
       if (error) throw new Error(error)
       if (success) {
         onSessionDelete(sessionId)
