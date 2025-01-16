@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { v4 as uuidv4 } from 'uuid'
 import dbConnect from '@/lib/mongodb'
 import { Chat } from '@/lib/models/chat'
+import { Chat as ChatType } from '@/lib/models/chat'
 import { revalidatePath } from 'next/cache'
 
 function replaceText(text: string): string {
@@ -78,7 +79,7 @@ export async function getRecentChats(userId: string) {
       .sort({ updatedAt: -1 })
       .limit(25)
       .lean()
-      .exec()
+      .exec() as unknown as ChatType[]
 
     // Serialize the chats to avoid issues with Date and ObjectId
     const serializedChats = recentChats.map(chat => ({

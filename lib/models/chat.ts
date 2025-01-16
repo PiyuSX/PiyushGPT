@@ -39,3 +39,17 @@ chatSchema.pre('save', function(next) {
 
 export const Chat = mongoose.models.Chat || mongoose.model('Chat', chatSchema)
 
+export type Chat = {
+  _id: mongoose.Types.ObjectId;
+  sessionId: string;
+  userId: string;
+  messages: {
+    _id?: mongoose.Types.ObjectId;
+    content: string;
+    role: string;
+    createdAt: Date;
+  }[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
