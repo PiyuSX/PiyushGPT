@@ -231,6 +231,7 @@ export default function ChatBot() {
           onSessionSelect={handleSessionSelect}
           onSessionDelete={handleSessionDelete}
           onNewChat={startNewChat}
+          userId={user.uid} // Pass userId as a prop
         />
       </div>
 
