@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { v4 as uuidv4 } from 'uuid'
 import dbConnect from '@/lib/mongodb'
 import { Chat } from '@/lib/models/chat'
+import { revalidatePath } from 'next/cache'
 
 function replaceText(text: string): string {
   return text
@@ -14,7 +15,7 @@ function replaceText(text: string): string {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 const model = genAI.getGenerativeModel({ model: 'gemini-pro' })
 
-export async function chat(messages: { role: string; content: string }[], sessionId?: string, userId: string) {
+export async function chat(messages: { role: string; content: string }[], userId: string, sessionId?: string) {
   try {
     await dbConnect()
 
@@ -31,11 +32,11 @@ export async function chat(messages: { role: string; content: string }[], sessio
     text = replaceText(text)
 
     await Chat.findOneAndUpdate(
-      { sessionId: currentSessionId, userId: userId },
+      { sessionId: currentSessionId, userId },
       {
         $set: { 
           sessionId: currentSessionId,
-          userId: userId,
+          userId,
           updatedAt: new Date()
         },
         $push: { 
@@ -54,6 +55,7 @@ export async function chat(messages: { role: string; content: string }[], sessio
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     await Chat.deleteMany({ updatedAt: { $lt: thirtyDaysAgo } })
 
+    revalidatePath('/')
     return { 
       content: text, 
       error: null,
@@ -72,7 +74,7 @@ export async function chat(messages: { role: string; content: string }[], sessio
 export async function getRecentChats(userId: string) {
   try {
     await dbConnect()
-    const recentChats = await Chat.find({ userId: userId })
+    const recentChats = await Chat.find({ userId })
       .sort({ updatedAt: -1 })
       .limit(25)
       .lean()
@@ -86,7 +88,7 @@ export async function getRecentChats(userId: string) {
       updatedAt: chat.updatedAt.toISOString(),
       messages: chat.messages.map(msg => ({
         ...msg,
-        _id: msg._id.toString(),
+        _id: msg._id?.toString(),
         createdAt: msg.createdAt.toISOString()
       }))
     }))
@@ -101,7 +103,8 @@ export async function getRecentChats(userId: string) {
 export async function deleteChat(sessionId: string, userId: string) {
   try {
     await dbConnect()
-    await Chat.deleteOne({ sessionId, userId: userId })
+    await Chat.deleteOne({ sessionId, userId })
+    revalidatePath('/')
     return { success: true, error: null }
   } catch (error) {
     console.error('Error deleting chat:', error)

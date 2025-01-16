@@ -62,8 +62,8 @@
     "@google/generative-ai": "latest",
     "uuid": "latest",
     "bcryptjs": "latest",
-    "firebase": "latest",
-    "react-firebase-hooks": "latest"
+    "react-firebase-hooks": "latest",
+    "firebase": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

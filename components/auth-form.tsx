@@ -4,29 +4,41 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { loginWithEmail, registerWithEmail, loginWithGoogle } from '@/lib/auth-utils'
+import { loginWithEmail, registerWithEmail, loginWithGoogle, updateUsername } from '@/lib/auth-utils'
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { auth } from '@/lib/firebase'
 
 export function AuthForm() {
   const [isRegistering, setIsRegistering] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showUsernameInput, setShowUsernameInput] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
 
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-
     try {
-      const result = isRegistering 
-        ? await registerWithEmail(email, password)
-        : await loginWithEmail(email, password)
-
-      if (result.success) {
-        toast.success(isRegistering ? 'Registered successfully' : 'Logged in successfully')
+      if (isRegistering) {
+        if (!username.trim()) {
+          toast.error('Username is required')
+          return
+        }
+        const result = await registerWithEmail(email, password, username)
+        if (result.success) {
+          toast.success('Registered successfully')
+        } else {
+          toast.error(result.error)
+        }
       } else {
-        toast.error(result.error)
+        const result = await loginWithEmail(email, password)
+        if (result.success) {
+          toast.success('Logged in successfully')
+        } else {
+          toast.error(result.error)
+        }
       }
     } catch (error) {
       toast.error('An unexpected error occurred')
@@ -57,14 +69,31 @@ export function AuthForm() {
         {isRegistering ? 'Register for Piyush GPT' : 'Login to Piyush GPT'}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-6">
+        {isRegistering && (
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-foreground">
+              Username
+            </label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              required
+              className="mt-1"
+              disabled={isLoading}
+            />
+          </div>
+        )}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-foreground">
             Email
           </label>
           <Input
             id="email"
-            name="email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
             className="mt-1"
             disabled={isLoading}
@@ -76,8 +105,9 @@ export function AuthForm() {
           </label>
           <Input
             id="password"
-            name="password"
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
             className="mt-1"
             disabled={isLoading}
@@ -89,7 +119,12 @@ export function AuthForm() {
       </form>
       <div className="text-center">
         <button
-          onClick={() => setIsRegistering(!isRegistering)}
+          onClick={() => {
+            setIsRegistering(!isRegistering)
+            setUsername('')
+            setEmail('')
+            setPassword('')
+          }}
           className="text-sm text-blue-500 hover:underline"
           disabled={isLoading}
         >

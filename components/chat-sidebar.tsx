@@ -1,20 +1,13 @@
+'use client'
+
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { formatDistanceToNow } from "date-fns"
 import { Trash2, MessageSquare } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { deleteChat } from "@/app/actions"
+import { deleteChat } from "@/app/actions/chat"
 import { toast } from "sonner"
-
-interface ChatSession {
-  sessionId: string
-  messages: {
-    content: string
-    role: string
-    createdAt: Date
-  }[]
-  createdAt: Date
-}
+import type { ChatSession } from "@/types/chat"
 
 interface ChatSidebarProps {
   sessions: ChatSession[]

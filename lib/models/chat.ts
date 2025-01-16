@@ -31,5 +31,11 @@ const chatSchema = new mongoose.Schema({
 chatSchema.index({ updatedAt: -1 })
 chatSchema.index({ sessionId: 1, userId: 1 })
 
+// Add hook to update the updatedAt timestamp
+chatSchema.pre('save', function(next) {
+  this.updatedAt = new Date()
+  next()
+})
+
 export const Chat = mongoose.models.Chat || mongoose.model('Chat', chatSchema)
 

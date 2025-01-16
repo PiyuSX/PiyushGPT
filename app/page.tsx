@@ -2,21 +2,21 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Send, Menu, LogOut } from 'lucide-react'
+import { Send, Menu, LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { chat, getRecentChats, deleteChat } from './actions/chat'
-import { loginWithEmail, registerWithEmail, loginWithGoogle, signOut } from '@/lib/auth-utils'
+import { signOut } from '@/lib/auth-utils'
 import { ChatSidebar } from '@/components/chat-sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { AuthForm } from '@/components/auth-form'
+import { UpdateUsername } from '@/components/update-username'
 import type { Message } from '@/types/chat'
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { auth } from '@/lib/firebase'
-
 
 function replaceText(text: string): string {
   return text
@@ -31,7 +31,7 @@ export default function ChatBot() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [sessions, setSessions] = useState<any[]>([])
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isRegistering, setIsRegistering] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [user, loading] = useAuthState(auth)
 
@@ -53,9 +53,25 @@ export default function ChatBot() {
     }
   }, [user])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isProfileOpen) {
+        const target = event.target as HTMLElement
+        if (!target.closest('.profile-dropdown')) {
+          setIsProfileOpen(false)
+        }
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isProfileOpen])
+
   const loadRecentChats = async () => {
     try {
-      const { chats, error } = await getRecentChats(user.uid)
+      const { chats, error } = await getRecentChats(user!.uid)
       if (error) {
         console.error(error)
         return
@@ -72,33 +88,6 @@ export default function ChatBot() {
       }
     } catch (error) {
       console.error('Failed to load recent chats:', error)
-    }
-  }
-
-  const handleLogin = async (email: string, password: string) => {
-    const result = await loginWithEmail(email, password)
-    if (result.success) {
-      toast.success('Logged in successfully')
-    } else {
-      toast.error(result.error)
-    }
-  }
-
-  const handleRegister = async (email: string, password: string) => {
-    const result = await registerWithEmail(email, password)
-    if (result.success) {
-      toast.success('Registered successfully')
-    } else {
-      toast.error(result.error)
-    }
-  }
-
-  const handleGoogleLogin = async () => {
-    const result = await loginWithGoogle()
-    if (result.success) {
-      toast.success('Logged in with Google successfully')
-    } else {
-      toast.error(result.error)
     }
   }
 
@@ -164,7 +153,7 @@ export default function ChatBot() {
         content: input.trim(),
       })
 
-      const { content, error, sessionId: newSessionId } = await chat(chatMessages, sessionId, user.uid)
+      const { content, error, sessionId: newSessionId } = await chat(chatMessages, user.uid, sessionId)
 
       if (error) {
         throw new Error(error)
@@ -196,7 +185,7 @@ export default function ChatBot() {
   }
 
   const handleSessionDelete = async (deletedSessionId: string) => {
-    const result = await deleteChat(deletedSessionId, user.uid)
+    const result = await deleteChat(deletedSessionId, user!.uid)
     if (result.success) {
       setSessions(prev => prev.filter(session => session.sessionId !== deletedSessionId))
       if (sessionId === deletedSessionId) {
@@ -256,15 +245,31 @@ export default function ChatBot() {
           >
             <Menu className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">PiyushGPT V1</h1>
+          <h1 className="text-xl font-bold text-foreground">Piyush GPT</h1>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">Welcome, {user.email}</span>
+            <span className="text-sm text-muted-foreground">
+              Welcome, {user.displayName || user.email}
+            </span>
             <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              className="profile-dropdown"
+            >
+              <User className="h-5 w-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="h-5 w-5" />
             </Button>
           </div>
         </header>
+
+        {isProfileOpen && (
+          <div className="absolute right-4 top-16 w-80 p-6 bg-background border rounded-lg shadow-lg z-50 profile-dropdown">
+            <UpdateUsername onClose={() => setIsProfileOpen(false)} />
+          </div>
+        )}
 
         <main className="flex-1 overflow-hidden bg-background">
           <ScrollArea className="h-full p-4">
