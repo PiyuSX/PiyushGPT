@@ -2,13 +2,13 @@ import { initializeApp, getApps } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAePwz2e7wol8_spTiIpfY_Ue4AuwItAK4",
-  authDomain: "piyushgpt-97b7f.firebaseapp.com",
-  projectId: "piyushgpt-97b7f",
-  storageBucket: "piyushgpt-97b7f.firebasestorage.app",
-  messagingSenderId: "510652004100",
-  appId: "1:510652004100:web:2d5054adedd3598a35c251",
-  measurementId: "G-1G0N7QPEN0"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
