@@ -8,6 +8,8 @@ import { useState } from "react"
 import { deleteChat } from "@/app/actions/chat"
 import { toast } from "sonner"
 import type { ChatSession } from "@/types/chat"
+import { useAuthState } from 'react-firebase-hooks/auth'
+import { auth } from '@/lib/firebase'
 
 interface ChatSidebarProps {
   sessions: ChatSession[]
@@ -15,7 +17,6 @@ interface ChatSidebarProps {
   onSessionSelect: (sessionId: string) => void
   onSessionDelete: (sessionId: string) => void
   onNewChat: () => void
-  userId: string // Add userId to props
 }
 
 export function ChatSidebar({ 
@@ -23,16 +24,20 @@ export function ChatSidebar({
   currentSessionId, 
   onSessionSelect,
   onSessionDelete,
-  onNewChat,
-  userId // Destructure userId from props
+  onNewChat
 }: ChatSidebarProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [user] = useAuthState(auth)
 
   const handleDelete = async (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!user?.uid) {
+      toast.error('User not authenticated')
+      return
+    }
     try {
       setDeletingId(sessionId)
-      const { success, error } = await deleteChat(sessionId, userId) // Pass userId as the second argument
+      const { success, error } = await deleteChat(sessionId, user.uid)
       if (error) throw new Error(error)
       if (success) {
         onSessionDelete(sessionId)

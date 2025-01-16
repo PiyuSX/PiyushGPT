@@ -231,7 +231,6 @@ export default function ChatBot() {
           onSessionSelect={handleSessionSelect}
           onSessionDelete={handleSessionDelete}
           onNewChat={startNewChat}
-          userId={user.uid} // Pass userId as a prop
         />
       </div>
 
@@ -246,7 +245,7 @@ export default function ChatBot() {
           >
             <Menu className="h-6 w-6" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">PiyushGPT v1</h1>
+          <h1 className="text-xl font-bold text-foreground">Piyush GPT</h1>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-muted-foreground">
               Welcome, {user.displayName || user.email}
