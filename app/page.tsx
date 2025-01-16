@@ -153,7 +153,7 @@ export default function ChatBot() {
         content: input.trim(),
       })
 
-      const { content, error, sessionId: newSessionId } = await chat(chatMessages, user.uid, sessionId)
+      const { content, error, sessionId: newSessionId } = await chat(chatMessages, user.uid, sessionId ?? undefined)
 
       if (error) {
         throw new Error(error)
